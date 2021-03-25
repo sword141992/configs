@@ -1,0 +1,102 @@
+    Настройка Nginx.conf
+
+1. Настроим тип сжатия при помощи  gzip_types
+2. Максимальная загрузка данных устанавливаем в client_max_body_size 64m
+3. Расскоментим server_tokens off , чтоб не выводилась версия nginx
+
+
+    Настройка Apache2.conf
+
+1. Запрещаем возможность обращения пользователей к директориям .svn и .git 
+<DirectoryMatch "^/.*/\.(svn|git)/">
+<------>Deny from all
+</DirectoryMatch>
+2. Прописываем порт 81 в ports.conf
+3. В mpm_prefork.conf устанавливаем мак колличество клиентов
+
+
+    Настройка php.ini
+
+1. Устанавливаем время сессии в session.gc_maxlifetime = 86400(24 часа в секундах)
+2. С вероятностью 10% что сессии должны очищаться настраиваем в session.gc.probability = 1 и session.gc.divisor = 10
+информацию по рассчету этой вероятности брал в php.net инструкция по настройки сессий.
+3. Максимальный объем загрузки файлов устанавливаем в uploud_max_filesize
+    Настройка mysql (50-server.conf)
+1. Кэш запросов в 32м ставим в query_cache_size
+2. Размер временных таблиц прописываем в tmp_table_size
+3. Количество кэшированных потоков прописываем в thread_cache_size
+4. Хранение InnoDB в отдельных файлах прописываем в innodb_file_per_table  и устанавливаем = 1
+
+
+    Настройка site.ru
+
+1. В var/www/ создаем каталог site.ru
+2. Скачиваем WordPress(с офф сайта) и расспаковываем в var/www/site.ru
+3. Для wordpress в MySQL создаем новую базу данных,пользователя, пароль и заполняем эти данные в wp-config.php
+// ** Параметры MySQL: Эту информацию можно получить у вашего хостинг-провайдера ** //
+/** Имя базы данных для WordPress */
+define( 'DB_NAME', 'site' );
+
+/** Имя пользователя MySQL */
+define( 'DB_USER', 'site' );
+
+/** Пароль к базе данных MySQL */
+define( 'DB_PASSWORD', 'site' );
+
+/** Имя сервера MySQL */
+define( 'DB_HOST', 'localhost' );
+
+4. В nginx.conf прописываем upstream  apache2 и указываем порт apache (server 127.0.0.1:81)
+5. В nginx/conf.d создаем site.ru.conf и заполняем его: 
+6. Настроить web-сервер таким образом, чтобы все запросы к статическим данным, начинающиеся с: http://site.ru/wp-includes/, обрабатывались Nginx,
+(Прописываем новый location wp-includes/ {
+alias /var/www/site.ru/wp-includes; 
+try_files $uri @apache2;)
+7. При этом, все подобные запросы, которые Nginx должен был, но по каким-то причинам не смог обработать самостоятельно - должны передаваться на Apache2
+ (т.е., если файла http://site.ru/wp-includes/js/test-nixys.js нет и Nginx, разумеется, не может отдать такой файл, то такие запросы должны быть переданы на обработку Apache2)
+прописываем   error_page  404              = apache2;(если nginx не найдет test-nixys.js выдаст 404 и передаст запрос apache2)
+apache2 прописываем в location proxy_pass
+8. Прописываем в /etc/apache2/sites-available site.ru.conf и заполняем его
+
+
+    Настройка site-2.ru
+
+1. В var/www/ создаем каталог site-2.ru
+2. По аналогии с site.ru создаем в /etc/nginx/conf.d  site-2.ru.conf путем копирования site.ru.conf.
+Удаляем location wp-includes и error_page  404 (т.к для настройки этого сайта данные команды не нужны)
+Указываем server_name и root
+3. В /etc/apache2/sites-available  копируем site.ru.conf и называем site-2.ru.conf и редактируем  ServerName, DocumentRoot 
+4. var/www/site-2.ru устанавливаем php менеджер
+
+
+    Настройка phpmyadmin
+1. Устанавливаем с официального сайта https://www.phpmyadmin.net/downloads/  в /var/www/phpmyadmin
+2. В MySQL создаем нового пользователя под phpmyadmin и даем права
+MariaDB [(none)]> create user 'phpmyadmin'@localhost identified by 'admin';
+Query OK, 0 rows affected (0.02 sec)
+
+MariaDB [(none)]> grant all privileges on *.* to 'phpmyadmin'@localhost;
+Query OK, 0 rows affected (0.01 sec)
+
+MariaDB [(none)]> grant grant option on *.* to 'phpmyadmin'@localhost;
+Query OK, 0 rows affected (0.00 sec)
+
+MariaDB [(none)]> flush privileges;
+Query OK, 0 rows affected (0.09 sec)
+
+3.В конфиге apache2.conf прописываем Alias /phpmyadmin /var/www/phpmyadmin (проверяем путем добавления site.ru/phpmyadmin)
+4.Устанавливаем директории, к которым может иметь доступ PHP в конфигах site.ru.conf и site-2.ru.conf 
+ (php_admin_value open_basedir "/var/www/site-2.ru/:/var/lib/php/sessions/:/var/www/phpmyadmin/:/tmp")
+
+5.Заполняем blowfish_secret  в /var/www/phpmyadmin/config.inc.php  тк phpmyadmin ругался
+
+
+    Доп
+ Отдельная директория для кода сайта(DOC_ROOT)(Расположенны /var/www в site.ru стоит стандартный wordpress, а в site-2.ru файл менеджер php)
+ Отдельная структура директорий для хранения логов сайта (изначално расположены /var/log )
+ Отдельная директория для хранения сессий сайта (изначално расположены /var/lib/php/session )
+ Отдельная директория для хранения временных файлов сайта (изначално расположены /var/tmp)
+
+https://github.com/sword141992/nyxis-configs
+    
+
