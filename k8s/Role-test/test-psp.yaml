@@ -1,0 +1,26 @@
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: test-psp
+spec:
+  allowedCapabilities:
+  - SYS_PTRACE
+  allowedHostPaths:
+  - pathPrefix: /var/log
+    readOnly: true
+  fsGroup:
+    rule: RunAsAny
+  hostNetwork: true
+  privileged: false
+  hostPorts:
+  - min: 25000
+    max: 25012
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  volumes:
+  - configMap
+  - hostPath

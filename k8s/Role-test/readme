@@ -1,0 +1,20 @@
+1)Чекаем нужные apiGroups с помощью:
+kubectl api-resources | grep нужная api
+
+Возникала проблема, что правильное написание apiGroups должно быть так:
+apiGroups: ["networking.k8s.io"] если вставлять networking.k8s.io/v1 то не работает 
+
+Проверка прав на получения списока подов юзером pasha:
+kubectl auth can-i list pods --as pasha
+yes
+
+Проверка прав на изменение ингресса юзером pasha:
+kubectl auth can-i patch ing -n default --as pasha
+yes
+
+Проверка прав на использование psp с именем test-psp юзером pasha:
+kubectl auth can-i get psp/test-psp -n default --as pasha
+Warning: resource 'podsecuritypolicies' is not namespace scoped in group 'policy'
+yes
+
+2) https://cloud.croc.ru/blog/byt-v-teme/nastroika-bezopasnosti-dlya-poda/
