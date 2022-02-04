@@ -1,0 +1,33 @@
+- name: add nginx key
+  apt_key:
+    url: https://nginx.org/keys/nginx_signing.key
+    state: present
+
+- name: Install Nginx latest version
+  apt:
+    name: nginx
+    state: latest
+
+- name: Sets nginx.conf file
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify: Reload Nginx
+
+- name: Sets site.ru.conf file
+  template:
+    src: site.ru.conf.j2
+    dest: "/etc/nginx/conf.d/{{server_conf}}"
+  notify: Reload Nginx
+
+- name: Sets site2.ru.conf file
+  template:
+    src: site2.ru.conf.j2
+    dest: "/etc/nginx/conf.d/{{server_conf2}}"
+  notify: Reload Nginx
+
+- name: Removes "default" site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Restart Nginx

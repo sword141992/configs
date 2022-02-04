@@ -1,0 +1,9 @@
+<VirtualHost *:81>
+    ServerName {{server_host2}}
+
+    DocumentRoot /var/www/{{server_host2}}
+    CustomLog ${APACHE_LOG_DIR}/site2.access.log combined
+    ErrorLog ${APACHE_LOG_DIR}/site2.error.log
+    php_admin_value open_basedir "/var/www/{{server_host2}}/:/var/lib/php/sessions/:/var/www/phpmyadmin/:/tmp"
+
+</VirtualHost>

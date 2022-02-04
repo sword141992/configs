@@ -1,0 +1,24 @@
+- name: Check if phpmyadmin directory exists in /var/www
+  stat: path=/var/www/phpmyadmin
+  register: check_path
+
+- name: Create document root site
+  file:
+    path: /var/www/phpmyadmin
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: 0755
+
+- name: Install phpMyAdmin
+  unarchive:
+     src: https://files.phpmyadmin.net/phpMyAdmin/5.1.0/phpMyAdmin-5.1.0-all-languages.tar.gz
+     dest: /home/14psh1992
+     remote_src: yes
+     directory_mode: yes
+  when: not check_path.stat.exists
+
+- name: Move phpmyadmin install files
+  shell: mv /home/14psh1992/phpMyAdmin-5.1.0-all-languages/* /var/www/phpmyadmin
+  become: yes
+  when: not check_path.stat.exists

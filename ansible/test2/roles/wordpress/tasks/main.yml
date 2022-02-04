@@ -1,0 +1,30 @@
+- name: Check if WordPress directory exists in /var/www
+  stat: path=/var/www/{{server_host1}}
+  register: check_path
+
+- name: Download and unpack latest WordPress
+  unarchive:
+    src: https://wordpress.org/latest.tar.gz
+    dest: /home/14psh1992/
+    remote_src: yes
+    directory_mode: yes
+  when: not check_path.stat.exists
+
+- name: Move WordPress install files
+  shell: mv /home/14psh1992/wordpress/* /var/www/{{server_host1}}
+  become: yes
+  when: not check_path.stat.exists
+
+- name: Fetch random salts for WordPress config
+  local_action: command curl https://api.wordpress.org/secret-key/1.1/salt/
+  register: "wp_salt"
+  become: no
+  when: not check_path.stat.exists
+
+- name: Set up wp-config
+  template:
+    src: templates/wp-config.php.j2
+    dest: /var/www/{{server_host1}}/wp-config.php
+  when: not check_path.stat.exists
+  notify: Restart Nginx
+ 

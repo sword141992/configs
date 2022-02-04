@@ -1,0 +1,11 @@
+---
+- hosts: servers
+  become: true
+  roles:
+    - apache
+    - php
+    - nginx
+    - mariadb
+    - wordpress
+    - phpmyadmin
+

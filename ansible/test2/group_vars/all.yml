@@ -1,0 +1,11 @@
+
+#mariadb
+mariadb_root_password: root
+mariadb_db: wordpress
+mariadb_user: root
+
+#HTTP
+server_host1: site.ru
+server_host2: site2.ru
+server_conf: site.ru.conf
+server_conf2: site2.ru.conf

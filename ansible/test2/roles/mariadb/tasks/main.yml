@@ -1,0 +1,45 @@
+- name: Install mariadb latest version
+  apt:
+     name: 
+      - mariadb-server
+      - python3-pymysql
+     state: latest
+
+- name: Sure MariaDB starts at boot
+  systemd: 
+     name: mariadb
+     enabled: yes
+
+- name: Start MariaDB by systemd
+  systemd:
+     name: mariadb
+     state: started
+
+- name: Check if root password is set
+  shell: >
+     mysqladmin -u root status
+  changed_when: false
+  failed_when: false
+  register: root_pwd_check
+
+- name: Set MariaDB root password for the first time
+  mysql_user:
+    name: root
+    password: "{{ mariadb_root_password }}"
+    host: localhost
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    state: present
+  when: root_pwd_check.rc == 0
+
+- name: Set up 50-server.cnf
+  template:
+    src:  50-server.cnf.j2
+    dest: /etc/mysql/mariadb.conf.d/50-server.cnf
+  notify: Reload Apache
+
+- name: Create database for wordpress
+  mysql_db:
+    name: "{{ mariadb_db}}"
+    state: present
+    login_user: "{{ mariadb_user}}"
+    login_password: "{{ mariadb_root_password }}"

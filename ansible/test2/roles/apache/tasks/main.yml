@@ -1,0 +1,80 @@
+- name: Install Apache latest version
+  apt:
+    name: apache2
+    state: latest
+
+- name: Create document root site
+  file:
+    path: "/var/www/{{server_host1}}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: 0755
+
+- name: Create document root site2
+  file:
+    path: "/var/www/{{server_host2}}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: 0755
+
+- name: Set up apache2.conf
+  template:
+    src: apache2.conf.j2
+    dest: /etc/apache2/apache2.conf
+  notify: Reload Apache
+
+- name: Set up ports.conf
+  template:
+    src: ports.conf.j2
+    dest: /etc/apache2/ports.conf
+  notify: Reload Apache
+
+- name: Set up mpm_prefork.conf
+  template:
+    src: mpm_prefork.conf.j2
+    dest: /etc/apache2/mpm_prefork.conf
+  notify: Reload Apache
+
+- name: Set up site.ru.conf
+  template:
+    src: site.ru.conf.j2
+    dest: "/etc/apache2/sites-available/{{server_conf}}"
+  notify: Reload Apache
+
+- name: Set up site2.ru.conf
+  template:
+    src: site2.ru.conf.j2
+    dest: "/etc/apache2/sites-available/{{server_conf2}}"
+  notify: Reload Apache
+
+- name: Enable rewrite module
+  shell: /usr/sbin/a2enmod rewrite
+  notify: Reload Apache
+
+- name: Enable new site
+  shell: "/usr/sbin/a2ensite {{server_conf}}"
+  notify: Reload Apache
+
+- name: Enable new site2
+  shell: "/usr/sbin/a2ensite {{server_conf2}}"
+  notify: Reload Apache
+
+- name: Disable default Apache site
+  shell: /usr/sbin/a2dissite 000-default.conf
+  notify: Restart Apache
+
+
+
+
+
+
+
+
+
+
+
+
+
+

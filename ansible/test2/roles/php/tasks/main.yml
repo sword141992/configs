@@ -1,0 +1,30 @@
+- name: Check if phpfilemanager directory exists in /var/www
+  stat: path=/var/www/{{server_host2}}
+  register: check_path
+
+- name: Install PHP
+  apt:
+    name:
+     - php
+     - php-mysql
+     - php-xml
+     - php-curl
+    state: latest
+
+- name: Sets php.ini file
+  template:
+    src: php.ini.j2
+    dest: /etc/php/7.3/apache2/php.ini
+  notify: Reload Apache
+
+- name: Download phpFileManager
+  unarchive:
+    src: https://extplorer.net/attachments/download/94/eXtplorer_2.1.14.zip
+    dest: "/var/www/{{server_host2}}"
+    mode: 0755
+    remote_src: yes
+    directory_mode: yes
+  when: not check_path.stat.exists
+  notify: Reload Apache
+
+
