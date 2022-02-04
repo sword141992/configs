@@ -1,0 +1,13 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: wordpress
+  name: role-1
+rules:
+- apiGroups: [""]
+  resources: ["pods", "deployments", "configmaps", "endpoints", "ingresses", "replicasets", "secrets", "persistentvolumes", "persistentvolumeclaims", "daemonsets", "events", "services", "storageclasses"]
+  verbs: [""]
+- apiGroups: ["policy"]
+  resources: ["podsecuritypolicies"]
+  resourceNames: ["psp-1"]
+  verbs: [""]
