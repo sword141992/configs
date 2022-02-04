@@ -1,0 +1,53 @@
+Поэтапная настройка однонодового куба k3s (вероятно потом подготовлю ансибл) для тестирования.
+
+1) Ставим k3s без traefik. Так как вместо него будем использовать ingress
+
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--no-deploy traefik" sh -s -
+
+2) Ждем установки и проверяем, что все рабоатает:
+
+kubectl get nodes
+
+3) Ставим Helm 
+
+curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+sudo apt-get install apt-transport-https --yes
+echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+sudo apt-get update
+sudo apt-get install helm
+
+4) Ставим Ingress nginx через helm
+
+helm upgrade --install ingress-nginx ingress-nginx \
+  --repo https://kubernetes.github.io/ingress-nginx \
+  --namespace ingress-nginx --create-namespace
+
+
+5) Делаем чек, что все рабоет исправно
+
+kubectl create deployment demo --image=httpd --port=80
+kubectl expose deployment demo
+
+kubectl create ingress demo-localhost --class=nginx \
+  --rule=demo.localdev.me/*=demo:80
+
+kubectl port-forward --namespace=ingress-nginx service/ingress-nginx-controller 8080:80
+
+http://demo.localdev.me:8080/  должны получить "It works!"
+
+6) Ставим cert-manager
+
+kubectl apply --validate=false -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.0/cert-manager.crds.yaml
+
+kubectl create namespace cert-manager
+
+helm repo add jetstack https://charts.jetstack.io
+
+helm repo update
+
+Устанавливаем cert-manager Helm chart
+helm install \
+  cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --version v1.7.0
+
