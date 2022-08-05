@@ -4,11 +4,13 @@
 
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--no-deploy traefik" sh -s -
 
-2) Ждем установки и проверяем, что все рабоатает:
+1.1) Вводим export KUBECONFIG=/etc/rancher/k3s/k3s.yaml для того, что мы смогли пользоваться кластером.
+
+1.2) Проверяем, что все рабоатает:
 
 kubectl get nodes
 
-3) Ставим Helm 
+2) Ставим Helm 
 
 curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
 sudo apt-get install apt-transport-https --yes
@@ -16,14 +18,14 @@ echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt
 sudo apt-get update
 sudo apt-get install helm
 
-4) Ставим Ingress nginx через helm
+3) Ставим Ingress nginx через helm
 
 helm upgrade --install ingress-nginx ingress-nginx \
   --repo https://kubernetes.github.io/ingress-nginx \
   --namespace ingress-nginx --create-namespace
 
 
-5) Делаем чек, что все рабоет исправно
+3.1) Делаем чек, что все рабоет исправно
 
 kubectl create deployment demo --image=httpd --port=80
 kubectl expose deployment demo
@@ -35,7 +37,7 @@ kubectl port-forward --namespace=ingress-nginx service/ingress-nginx-controller 
 
 http://demo.localdev.me:8080/  должны получить "It works!"
 
-6) Ставим cert-manager
+3.2) Ставим cert-manager
 
 kubectl apply --validate=false -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.0/cert-manager.crds.yaml
 
